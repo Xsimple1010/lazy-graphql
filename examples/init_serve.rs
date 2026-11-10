@@ -1,8 +1,8 @@
-use subgraph_common::async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
-use subgraph_common::google_firebase::firebase::FirebaseClaims;
-use subgraph_common::auth::token::EmptyActor;
-use subgraph_common::service_state::ServiceState;
-use subgraph_common::subgraph_service::SubgraphService;
+use lazy_graphql::async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
+use lazy_graphql::google_firebase::firebase::FirebaseClaims;
+use lazy_graphql::auth::token::EmptyActor;
+use lazy_graphql::service_state::ServiceState;
+use lazy_graphql::subgraph_service::SubgraphService;
 
 #[tokio::main]
 async fn main() {
