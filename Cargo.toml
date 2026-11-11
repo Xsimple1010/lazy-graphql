@@ -1,9 +1,13 @@
+[workspace]
+members = [".", "macros"]
+
 [package]
 name = "lazy-graphql"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+lazy-graphql-macros = { path = "macros" }
 axum = "0.8.9"
 tokio = { version = "1.54.1", features = [
     "rt-multi-thread",
@@ -28,4 +32,5 @@ uuid = { version = "1.29.2", features = ["v7"] }
 redis = { version = "1.8.1", features = ["tokio-comp", "connection-manager"] }
 aws-s3-manager = { git = "https://github.com/Xsimple1010/aws-s3-manager.git" }
 reqwest = "0.13.5"
-google-firebase = { path = "../google-firebase" }
+google-firebase = { git = "https://github.com/Xsimple1010/google-firebase.git" }
+tracing = "0.1.44"

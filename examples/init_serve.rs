@@ -1,61 +1,30 @@
-use lazy_graphql::async_graphql::{Context, EmptyMutation, EmptySubscription, Object, Schema};
-use lazy_graphql::google_firebase::firebase::FirebaseClaims;
+use lazy_graphql::async_graphql::EmptyMutation;
 use lazy_graphql::auth::token::EmptyActor;
-use lazy_graphql::service_state::ServiceState;
+use lazy_graphql::cron_job_setup::SubgraphJob;
 use lazy_graphql::subgraph_service::SubgraphService;
+
+use crate::common::query::MyQuery;
+use crate::common::state::AppState;
+use crate::common::subscription::{MySubscription, send_message_cron_job};
+
+mod common;
 
 #[tokio::main]
 async fn main() {
     Service::builder().await
 }
 
-struct Query;
-
-#[Object]
-impl Query {
-    async fn howdy(&self, ctx: &Context<'_>) -> Result<String, String> {
-        let ctx = AppState::get_from_context(&ctx)?;
-
-        let claims = ctx.get_claims()?;
-
-        Ok(match &claims.email {
-            Some(email) => email.clone(),
-            None => "sem email".to_owned(),
-        })
-    }
-}
-
-#[derive(Clone)]
-struct AppState {
-    claims: Option<FirebaseClaims<EmptyActor>>,
-}
-
-#[async_trait::async_trait]
-impl ServiceState<Query, EmptyMutation, EmptySubscription, EmptyActor> for AppState {
-    const APP_NAME: &'static str = "TESTE SERVICE";
-
-    async fn new() -> Self {
-        AppState { claims: None }
-    }
-
-    fn get_graphql_schema(&self) -> Schema<Query, EmptyMutation, EmptySubscription> {
-        Schema::build(Query, EmptyMutation, EmptySubscription).finish()
-    }
-
-    fn get_claims<'a>(&self) -> Result<&FirebaseClaims<EmptyActor>, &'a str> {
-        match self.claims.as_ref() {
-            Some(claims) => Ok(claims),
-            None => Err("claims not found"),
-        }
-    }
-
-    fn set_claims(&mut self, claims: Option<FirebaseClaims<EmptyActor>>) {
-        self.claims = claims;
-    }
-}
-
 pub struct Service;
 
 #[async_trait::async_trait]
-impl SubgraphService<Query, EmptyMutation, EmptySubscription, AppState, EmptyActor> for Service {}
-
+impl SubgraphService<MyQuery, EmptyMutation, MySubscription, AppState, EmptyActor> for Service {
+    async fn set_cron_job<'a>()
+    -> Vec<SubgraphJob<MyQuery, EmptyMutation, MySubscription, AppState, EmptyActor>> {
+        vec![SubgraphJob {
+            name: "Send message using graphql subscription",
+            handler: send_message_cron_job,
+            schedule: "*/3 * * * * *",
+            _phantom: Default::default(),
+        }]
+    }
+}

@@ -2,8 +2,7 @@ use crate::error::ServiceError;
 use async_graphql::futures_util::Stream;
 use dashmap::DashMap;
 use redis::aio::{ConnectionManager, ConnectionManagerConfig};
-use redis::{AsyncCommands, Client, PushInfo, PushKind, RedisError, ToSingleRedisArg, Value};
-use serde::Serialize;
+use redis::{AsyncCommands, Client, PushInfo, PushKind, RedisError, Value};
 use serde::de::DeserializeOwned;
 use std::fmt::Debug;
 use std::sync::Arc;
@@ -21,6 +20,8 @@ pub struct RedisNotification {
     observables: Observables,
     pub connection_manager: ConnectionManager,
 }
+
+pub use redis::{RedisWrite, ToRedisArgs, ToSingleRedisArg};
 
 impl RedisNotification {
     pub async fn new(redis_client: Client, default_chanel: &str) -> Result<Self, ServiceError> {
@@ -118,7 +119,7 @@ impl RedisNotification {
         });
     }
 
-    pub async fn append_observable<T>(
+    async fn append_observable<T>(
         &self,
         channel: String,
         buffer_size: usize,
@@ -141,7 +142,7 @@ impl RedisNotification {
         Ok(stream)
     }
 
-    pub async fn send_message_to_channel<
+    async fn send_message_to_channel<
         K: ToSingleRedisArg + Send + Sync + Debug,
         E: ToSingleRedisArg + Send + Sync + Debug,
     >(
@@ -161,27 +162,37 @@ impl RedisNotification {
     }
 }
 
-pub trait NotificationChannel {
-    /// O tipo enviado/recebido nesse canal. Um único lugar define o tipo,
-    /// então publish e subscribe nunca podem divergir.
-    type Payload: ToSingleRedisArg + Debug + Serialize + DeserializeOwned + Send + Sync + 'static;
+pub trait NotificationChannel: Send + Sync + 'static {
+    /// Tipo que trafega neste canal.
+    type Payload: ToSingleRedisArg + Debug + DeserializeOwned + Send + Sync + 'static;
 
     fn channel_name(&self) -> String;
-}
 
-impl RedisNotification {
-    pub async fn send<C: NotificationChannel>(&self, channel: &C, data: C::Payload) {
-        println!("send:: {}", channel.channel_name());
-        self.send_message_to_channel(channel.channel_name(), data)
-            .await;
+    fn send(
+        &self,
+        redis: RedisNotification,
+        data: Self::Payload,
+    ) -> impl Future<Output = ()> + Send {
+        async move {
+            tracing::debug!("send:: {}", self.channel_name());
+            redis
+                .send_message_to_channel(self.channel_name(), data)
+                .await;
+        }
     }
 
-    pub async fn subscribe<C: NotificationChannel>(
-        &mut self,
-        channel: &C,
+    fn subscribe(
+        self,
+        redis: RedisNotification,
         buffer: usize,
-    ) -> Result<impl Stream<Item = C::Payload>, String> {
-        self.append_observable::<C::Payload>(channel.channel_name(), buffer)
-            .await
+    ) -> impl Future<Output = Result<impl Stream<Item = Self::Payload> + Send, String>> + Send
+    where
+        Self: Sized,
+    {
+        async move {
+            redis
+                .append_observable::<Self::Payload>(self.channel_name(), buffer)
+                .await
+        }
     }
 }

@@ -1,4 +1,4 @@
-use crate::env_vars::{self, get_aws_region, get_aws_s3_bucket_name};
+use crate::env_vars::{self, get_aws_region, get_aws_s3_bucket_name, get_redis_url};
 use crate::error::ServiceError;
 use crate::graphql_subscription_operation::on_connection_init;
 use crate::kafka_common::setup::create_producer;
@@ -106,7 +106,8 @@ pub trait ServiceState<
         let app_name = self.get_app_name();
         REDIS_NOTIFICATION
             .get_or_init(async || {
-                let client = redis::Client::open("redis://redis/?protocol=resp3").unwrap();
+                let client =
+                    redis::Client::open(format!("{}/?protocol=resp3", get_redis_url())).unwrap();
                 RedisNotification::new(client, &app_name).await.unwrap()
             })
             .await
@@ -116,7 +117,7 @@ pub trait ServiceState<
     async fn get_redis_connection(&self) -> ConnectionManager {
         REDIS_CONNECTION_MANAGER
             .get_or_init(async || {
-                let client = redis::Client::open("redis://redis/").unwrap();
+                let client = redis::Client::open(get_redis_url()).unwrap();
                 ConnectionManager::new(client).await.unwrap()
             })
             .await

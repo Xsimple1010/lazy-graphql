@@ -1,0 +1,13 @@
+# macros/Cargo.toml
+[package]
+name = "lazy-graphql-macros"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "3.0.10", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"

@@ -11,3 +11,4 @@ pub fn get_azure_client_id() -> String { required("AZURE_CLIENT_ID") }
 pub fn get_azure_client_secret() -> String { required("AZURE_CLIENT_SECRET") }
 pub fn get_azure_tenant_id() -> String { required("AZURE_TENANT_ID") }
 pub fn get_azure_vault_url() -> String { required("AZURE_VAULT_URL") }
+pub fn get_redis_url() -> String { required("REDIS_URL") }

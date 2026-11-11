@@ -34,7 +34,7 @@ pub trait SubgraphService<
         start_jobs(jobs, state.clone()).await;
         let addr = format!("0.0.0.0:{port}");
 
-        // Self::set_kafka_job(state.clone()).await;
+        Self::set_kafka_job(state.clone()).await;
 
         let listener = TcpListener::bind(&addr).await.unwrap();
 
@@ -49,7 +49,7 @@ pub trait SubgraphService<
         Ok(())
     }
 
-    // async fn set_kafka_job(_state: S) {}
+    async fn set_kafka_job(_state: S) {}
 
     async fn get_state() -> S {
         S::new().await
