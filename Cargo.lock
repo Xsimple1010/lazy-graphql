@@ -2594,7 +2594,6 @@ dependencies = [
 name = "lazy-graphql-macros"
 version = "0.1.0"
 dependencies = [
- "proc-macro2",
  "quote",
  "syn 3.0.10",
 ]
