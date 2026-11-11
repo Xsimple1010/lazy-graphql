@@ -547,8 +547,8 @@ dependencies = [
 
 [[package]]
 name = "aws-s3-manager"
-version = "0.1.2"
-source = "git+https://github.com/Xsimple1010/aws-s3-manager.git#d1eceab4eb4359ed0f3cdf853e6eaef8f99db1cc"
+version = "0.1.3"
+source = "git+https://github.com/Xsimple1010/aws-s3-manager.git#1576acda118b53af0794b35b1a05ec937f172081"
 dependencies = [
  "aws-config",
  "aws-sdk-s3",
@@ -2565,7 +2565,7 @@ dependencies = [
 
 [[package]]
 name = "lazy-graphql"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-graphql",
  "async-graphql-axum",
@@ -4534,7 +4534,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
